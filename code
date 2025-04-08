@@ -1,0 +1,50 @@
+import board
+import time
+import analogio
+import digitalio
+
+
+adc_pin = analogio.AnalogIn(board.GP27)
+
+# Define the solenoid control pin
+SOLENOID_PIN = board.GP16
+
+# Set up the pin as a digital output
+solenoid = digitalio.DigitalInOut(SOLENOID_PIN)
+solenoid.direction = digitalio.Direction.OUTPUT
+
+def read_voltage(adc):
+    # Convert the 16-bit ADC value to a voltage (0-3.3V)
+    voltage = (adc.value * 3.3) / 65536
+    voltage = voltage - .82
+    return voltage
+
+# Function to calculate pressure from voltage (assuming linear scaling)
+def voltage_to_pressure(voltage):
+    # Convert voltage (0-3.3V) to pressure (0-10V scale)
+    pressure = (voltage / 3.3) * 10  # Scale 0-3.3V to 0-10V
+    pressure = (voltage * 30)
+    return pressure
+    
+
+while True:
+    # Read the raw ADC value and convert it to voltage
+    voltage = read_voltage(adc_pin)
+
+    # Calculate the corresponding pressure (0-10V range)
+    pressure = voltage_to_pressure(voltage)
+    
+    
+    print("Solenoid ON")
+    solenoid.value = True  # Fully turn ON the solenoid
+    time.sleep(1)  # Keep it ON for 3 seconds
+
+    print("Solenoid OFF")
+    solenoid.value = False  # Fully turn OFF the solenoid
+    time.sleep(1)  # Keep it OFF for 3 seconds
+
+
+    # Print the voltage and corresponding pressure
+    print(f"Voltage: {voltage:.2f} V, Pressure: {pressure:.2f} PSIA")
+
+    time.sleep(.1)  # Delay for 1 second
