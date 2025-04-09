@@ -21,9 +21,10 @@ def read_voltage(adc):
 
 # Function to calculate pressure from voltage (assuming linear scaling)
 def voltage_to_pressure(voltage):
-    # Convert voltage (0-3.3V) to pressure (0-10V scale)
-    pressure = (voltage / 3.3) * 10  # Scale 0-3.3V to 0-10V
-    pressure = (voltage * 30)
+    # Convert voltage (0-3.3V) to pressure (0-300 PSIA)
+    pressure = (voltage/3.3 * 300)
+    # Convert 0-300 psia to bar
+    pressure = (pressure/300) * 14.5038
     return pressure
     
 
@@ -33,18 +34,17 @@ while True:
 
     # Calculate the corresponding pressure (0-10V range)
     pressure = voltage_to_pressure(voltage)
-    
-    
-    print("Solenoid ON")
-    solenoid.value = True  # Fully turn ON the solenoid
-    time.sleep(1)  # Keep it ON for 3 seconds
+    if pressure < .2:
+        print("Solenoid ON")
+        solenoid.value = True  # Fully turn ON the solenoid
+    # time.sleep(1)  # Keep it ON for 3 seconds
 
-    print("Solenoid OFF")
-    solenoid.value = False  # Fully turn OFF the solenoid
-    time.sleep(1)  # Keep it OFF for 3 seconds
-
+    if pressure > .2:
+        print("Solenoid OFF")
+        solenoid.value = False  # Fully turn OFF the solenoid
+    # time.sleep(1)  # Keep it OFF for 3 seconds
 
     # Print the voltage and corresponding pressure
-    print(f"Voltage: {voltage:.2f} V, Pressure: {pressure:.2f} PSIA")
+    print(f"Voltage: {voltage:.2f} V, Pressure: {pressure:.2f} BAR")
 
     time.sleep(.1)  # Delay for 1 second
