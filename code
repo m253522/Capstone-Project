@@ -4,7 +4,7 @@ import analogio
 import digitalio
 
 
-adc_pin = analogio.AnalogIn(board.GP26)
+adc_pin = analogio.AnalogIn(board.GP27)
 
 # Define the solenoid control pin
 SOLENOID_PIN = board.GP16
@@ -16,7 +16,7 @@ solenoid.direction = digitalio.Direction.OUTPUT
 def read_voltage(adc):
     # Convert the 16-bit ADC value to a voltage (0-3.3V)
     voltage = (adc.value * 3.3) / 65536
-    #voltage = voltage - .82
+    voltage = voltage - .65
     return voltage
 
 # Function to calculate pressure from voltage (assuming linear scaling)
@@ -41,6 +41,8 @@ while True:
     else:
         print("Solenoid Open")
         solenoid.value = False
+    #print("Solenoid Open")
+    #solenoid.value = False
 
     # Print the voltage and corresponding pressure
     print(f"Voltage: {voltage:.2f} V, Pressure: {pressure:.2f} BAR")
