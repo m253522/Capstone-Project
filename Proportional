@@ -1,0 +1,58 @@
+import board
+import time
+import analogio
+import pwmio
+
+# Control Gain
+k = 10
+desiredPressure = .1
+
+
+adc_pin = analogio.AnalogIn(board.GP27)
+
+# Define the solenoid control pin
+SOLENOID_PIN = board.GP16
+
+# Set up the pin as a digital output
+solenoid = pwmio.PWMOut(SOLENOID_PIN, frequency=500, duty_cycle=0)
+
+def read_voltage(adc):
+    # Convert the 16-bit ADC value to a voltage (0-3.3V)
+    voltage = (adc.value * 3.3) / 65536
+    voltage = voltage - .65
+    return voltage
+
+# Function to calculate pressure from voltage (assuming linear scaling)
+def voltage_to_pressure(voltage):
+    # Convert voltage (0-3.3V) to pressure (0-300 PSIA)
+    pressure = (voltage/3.3 * 300)
+    # Convert 0-300 psia to bar
+    pressure = (pressure * 0.0689475728)
+    return pressure
+
+
+while True:
+    # Read the raw ADC value and convert it to voltage
+    voltage = read_voltage(adc_pin)
+
+    # Calculate the corresponding pressure (0-10V range)
+    pressure = voltage_to_pressure(voltage)
+
+    # Control law
+    error = desiredPressure-pressure
+    control_signal = k*error
+    print(f"control_signal {control_signal:.2f}")
+
+      # invert and clamp into [0…1]
+    u = max(0.0, min(-control_signal, 1.0))
+    print(f"error {error:.2f}")
+    
+    duty = int(u * 65535)
+
+    solenoid.duty_cycle = duty
+    print(f"Solenoid duty cycle: {solenoid.duty_cycle :.2f}")
+
+    # Print the voltage and corresponding pressure
+    print(f"Voltage: {voltage:.2f} V, Pressure: {pressure:.2f} BAR")
+
+    time.sleep(.1)  # Delay for 1 second
